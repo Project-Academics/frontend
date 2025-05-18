@@ -1,5 +1,5 @@
 {
-  "name": "project-a",
+  "name": "project-a-frontend",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,6 +9,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@material/web": "^2.3.0",
     "astro": "^5.7.13"
   }
 }
