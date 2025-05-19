@@ -1,9 +1,11 @@
----
-import '@material/web/button/filled-button.js';
-import '@material/web/textfield/outlined-text-field.js';
-import '@material/web/progress/circular-progress.js';
----
+<!-- Imports -->
+<script type="module">
+  import '@material/web/button/filled-button.js';
+  import '@material/web/textfield/outlined-text-field.js';
+  import '@material/web/progress/circular-progress.js';
+</script>
 
+<!-- Styles -->
 <style>
   .uploader-container {
     font-family: 'Roboto', sans-serif;
@@ -24,6 +26,7 @@ import '@material/web/progress/circular-progress.js';
     gap: 1rem;
     border: 2px dashed #ccc;
     transition: border-color 0.3s;
+    cursor: pointer;
   }
 
   .uploader-card.dragover {
@@ -37,9 +40,13 @@ import '@material/web/progress/circular-progress.js';
   }
 
   .file-preview {
-    margin-top: 0.5rem;
     font-size: 0.95rem;
     color: #333;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
   }
 
   .response-box {
@@ -56,13 +63,19 @@ import '@material/web/progress/circular-progress.js';
   }
 </style>
 
+<!-- Markup -->
 <div class="uploader-container">
   <div class="uploader-card" id="drop-zone">
     <div class="card-title">Upload Document</div>
-    <p>Drag & drop PNG or PDF here, or click to select.</p>
-    <input type="file" accept=".png,.pdf" id="file-input" hidden />
+    <p>Drag & drop PNG or PDF here</p>
+    <input type="file" accept=".png,.pdf,.jpg" id="file-input" hidden />
     <div class="file-preview" id="file-name">No file selected.</div>
-    <md-filled-button id="upload-btn" disabled>Upload</md-filled-button>
+
+    <div class="button-group">
+      <md-filled-button id="select-btn">Select File</md-filled-button>
+      <md-filled-button id="upload-btn" disabled>Upload</md-filled-button>
+    </div>
+
     <md-circular-progress id="loader" indeterminate style="display: none;"></md-circular-progress>
   </div>
 
@@ -72,18 +85,22 @@ import '@material/web/progress/circular-progress.js';
   </div>
 </div>
 
+<!-- Script -->
 <script type="module">
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const fileNameDisplay = document.getElementById('file-name');
+  const selectBtn = document.getElementById('select-btn');
   const uploadBtn = document.getElementById('upload-btn');
   const loader = document.getElementById('loader');
   const responseText = document.getElementById('response-text');
 
   let selectedFile = null;
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  // Open file picker
+  selectBtn.addEventListener('click', () => fileInput.click());
 
+  // File selected from file picker
   fileInput.addEventListener('change', (e) => {
     selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -92,6 +109,7 @@ import '@material/web/progress/circular-progress.js';
     }
   });
 
+  // Drag over
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
@@ -101,6 +119,7 @@ import '@material/web/progress/circular-progress.js';
     dropZone.classList.remove('dragover');
   });
 
+  // Drop file
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
@@ -112,19 +131,20 @@ import '@material/web/progress/circular-progress.js';
     }
   });
 
+  // Upload file
   uploadBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
 
     loader.style.display = 'inline-block';
     uploadBtn.disabled = true;
+    selectBtn.disabled = true;
     responseText.textContent = 'Uploading...';
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('image', selectedFile);
 
     try {
-      // Replace '/api/upload' with your actual backend endpoint
-      const res = await fetch('/api/upload', {
+      const res = await fetch('http://localhost:8080/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -132,10 +152,11 @@ import '@material/web/progress/circular-progress.js';
       const result = await res.json();
       responseText.textContent = result.message || 'Upload complete!';
     } catch (error) {
-      responseText.textContent = 'Failed to upload file.';
+      responseText.textContent = error?.message || 'Failed to upload file.';
     } finally {
       loader.style.display = 'none';
       uploadBtn.disabled = false;
+      selectBtn.disabled = false;
     }
   });
 </script>
